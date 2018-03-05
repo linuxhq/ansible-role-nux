@@ -48,7 +48,7 @@
   tags: nux
   become: true
   template:
-    src: nux-desktop.repo.j2
+    src: nux-dextop.repo.j2
     dest: /etc/yum.repos.d/nux-dextop.repo
     owner: root
     group: root

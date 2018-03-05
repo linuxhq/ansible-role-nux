@@ -15,12 +15,12 @@ Available variables are listed below, along with default values:
     nux_arch: "{{ ansible_architecture }}"
     nux_dist: "{{ ansible_distribution_major_version }}"
     nux_baseurl: "http://li.nux.ro/download/nux/dextop/el{{ nux_dist }}/{{ nux_arch }}"
-    nux_package: nux-desktop-release
+    nux_package: nux-dextop-release
     nux_disablerepo: []
     nux_enablerepo: []
     nux_packages: []
-    nux_repository_nux_desktop: false
-    nux_repository_nux_desktop_testing: false
+    nux_repository_nux_dextop: false
+    nux_repository_nux_dextop_testing: false
 
 ## Dependencies
 
@@ -35,7 +35,7 @@ Available variables are listed below, along with default values:
             - epel
           nux_packages:
             - ffmpeg
-          nux_repository_nux_desktop: true
+          nux_repository_nux_dextop: true
 
 ## License
 
