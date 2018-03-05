@@ -1,0 +1,11 @@
+---
+nux_arch: "{{ ansible_architecture }}"
+nux_dist: "{{ ansible_distribution_major_version }}"
+nux_baseurl: "http://li.nux.ro/download/nux/dextop/el{{ nux_dist }}/{{ nux_arch }}"
+nux_package: nux-desktop-release
+nux_disablerepo: []
+nux_enablerepo: []
+nux_packages: []
+nux_repository_nux_desktop: false
+nux_repository_nux_desktop_testing: false
+...

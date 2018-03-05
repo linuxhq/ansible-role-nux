@@ -1,0 +1,78 @@
+---
+- name: Setting nux_version fact (el7)
+  tags: nux
+  set_fact:
+    nux_version: "0-5.el{{ nux_dist }}.nux"
+  when: nux_dist == '7'
+
+- name: Setting nux_version fact (el6)
+  tags: nux
+  set_fact:
+    nux_version: "0-2.el{{ nux_dist }}.nux"
+  when: nux_dist == '6'
+
+- name: Generating temporary filename via mktemp
+  tags: nux
+  command: |
+    mktemp -u --suffix .rpm
+  register: nux_mktemp
+
+- name: Downloading package to temporary location
+  tags: nux
+  get_url:
+    dest: "{{ nux_mktemp.stdout }}"
+    url: "{{ nux_baseurl }}/{{ nux_package }}-{{ nux_version }}.noarch.rpm"
+  register: nux_get_url
+  when: nux_mktemp|success
+
+- name: Ensure that the {{ nux_package }} package is installed
+  tags: nux
+  become: true
+  yum:
+    name: "{{ item }}"
+    state: present
+  register: nux_yum
+  with_items: "{{ nux_mktemp.stdout }}"
+  when: nux_get_url|success
+
+- name: Purging temporary package from filesystem
+  tags: nux
+  file:
+    path: "{{ nux_mktemp.stdout }}"
+    state: absent
+  when:
+    - nux_mktemp|success
+    - nux_yum|success
+
+- name: Applying nux repository configurations
+  tags: nux
+  become: true
+  template:
+    src: nux-desktop.repo.j2
+    dest: /etc/yum.repos.d/nux-dextop.repo
+    owner: root
+    group: root
+    mode: 0644
+  when: nux_yum|success
+
+- name: Ensure that the Nux GPG keys are installed
+  tags: nux
+  become: true
+  rpm_key:
+    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-nux.ro
+    state: present
+  when: nux_yum|success
+
+- name: Ensure that the required nux packages are installed
+  tags: nux
+  become: true
+  yum:
+    disablerepo: "{{ nux_disablerepo|join(',') }}"
+    enablerepo: "{{ nux_enablerepo|join(',') }}"
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ nux_packages }}"
+  when:
+    - nux_packages|length > 0
+    - nux_yum|success
+...
