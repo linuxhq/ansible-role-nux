@@ -77,5 +77,5 @@
   with_items: "{{ nux_packages }}"
   when:
     - nux_packages|length > 0
-    - nux_yum is |success
+    - nux_yum is success
 ...
