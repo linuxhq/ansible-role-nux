@@ -1,29 +1,32 @@
 ---
-- name: Setting nux_version fact (el7)
-  tags: nux
-  set_fact:
-    nux_version: "0-5.el{{ nux_dist }}.nux"
-  when: nux_dist == '7'
-
-- name: Setting nux_version fact (el6)
+- name: Attempting to set el6 nux_version fact
   tags: nux
   set_fact:
     nux_version: "0-2.el{{ nux_dist }}.nux"
   when: nux_dist == '6'
 
-- name: Generating temporary filename via mktemp
+- name: Attempting to set el7 nux_version fact
   tags: nux
-  command: |
-    mktemp -u --suffix .rpm
-  register: nux_mktemp
+  set_fact:
+    nux_version: "0-5.el{{ nux_dist }}.nux"
+  when: nux_dist == '7'
 
-- name: Downloading package to temporary location
+- name: Attempting to generate temporary file
+  tags: nux
+  tempfile:
+    prefix: nux.
+    state: file
+    suffix: .rpm
+  register: nux_tempfile
+
+- name: Attempting to download package to temporary location
   tags: nux
   get_url:
-    dest: "{{ nux_mktemp.stdout }}"
+    dest: "{{ nux_tempfile.path }}"
+    force: yes
     url: "{{ nux_baseurl }}/{{ nux_package }}-{{ nux_version }}.noarch.rpm"
   register: nux_get_url
-  when: nux_mktemp|success
+  when: nux_tempfile is success
 
 - name: Ensure that the {{ nux_package }} package is installed
   tags: nux
@@ -32,19 +35,19 @@
     name: "{{ item }}"
     state: present
   register: nux_yum
-  with_items: "{{ nux_mktemp.stdout }}"
-  when: nux_get_url|success
+  with_items: "{{ nux_tempfile.path }}"
+  when: nux_get_url is success
 
-- name: Purging temporary package from filesystem
+- name: Attempting to purge temporary package from the filesystem
   tags: nux
   file:
-    path: "{{ nux_mktemp.stdout }}"
+    path: "{{ nux_tempfile.path }}"
     state: absent
   when:
-    - nux_mktemp|success
-    - nux_yum|success
+    - nux_tempfile is success
+    - nux_yum is success
 
-- name: Applying nux repository configurations
+- name: Attempting to overlay nux repository configurations
   tags: nux
   become: true
   template:
@@ -53,15 +56,15 @@
     owner: root
     group: root
     mode: 0644
-  when: nux_yum|success
+  when: nux_yum is success
 
-- name: Ensure that the Nux GPG keys are installed
+- name: Ensure that the nux gpg keys are installed
   tags: nux
   become: true
   rpm_key:
     key: /etc/pki/rpm-gpg/RPM-GPG-KEY-nux.ro
     state: present
-  when: nux_yum|success
+  when: nux_yum is success
 
 - name: Ensure that the required nux packages are installed
   tags: nux
@@ -74,5 +77,5 @@
   with_items: "{{ nux_packages }}"
   when:
     - nux_packages|length > 0
-    - nux_yum|success
+    - nux_yum is |success
 ...
