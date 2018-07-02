@@ -1,6 +1,7 @@
 ---
 dependencies: []
 galaxy_info:
+  role_name: nux
   author: tkimball83
   description: RHEL/CentOS - Nux repository
   license: GPLv3
@@ -12,5 +13,4 @@ galaxy_info:
         - 7
   galaxy_tags:
     - nux
-    - yum
 ...
