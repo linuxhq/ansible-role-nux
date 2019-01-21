@@ -32,10 +32,9 @@
   tags: nux
   become: true
   yum:
-    name: "{{ item }}"
+    name: "{{ nux_tempfile.path }}"
     state: present
   register: nux_yum
-  with_items: "{{ nux_tempfile.path }}"
   when: nux_get_url is success
 
 - name: Attempting to purge temporary package from the filesystem
@@ -74,7 +73,7 @@
     enablerepo: "{{ nux_enablerepo|join(',') }}"
     name: "{{ item }}"
     state: present
-  with_items: "{{ nux_packages }}"
+  loop: "{{ nux_packages }}"
   when:
     - nux_packages|length > 0
     - nux_yum is success
